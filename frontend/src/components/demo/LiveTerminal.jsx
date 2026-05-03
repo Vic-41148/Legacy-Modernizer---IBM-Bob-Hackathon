@@ -112,33 +112,32 @@ function LiveTerminal({ logs }) {
             </div>
           </div>
         ) : (
-                  [{formatTimestamp(log.timestamp)}]
-                </span>
-                <span className={`flex-shrink-0 ${getLogColor(log.type)}`}>
-                  {getLogIcon(log.type)}
-                </span>
-                <span className="text-gray-300 flex-1 break-words">
-                  {log.message}
-                </span>
-              </div>
-            ))}
-          </div>
+          <List
+            ref={listRef}
+            outerRef={outerRef}
+            height={240}
+            itemCount={logs.length}
+            itemSize={28}
+            width="100%"
+            onScroll={handleScroll}
+            className="p-2"
+          >
+            {Row}
+          </List>
         )}
       </div>
 
-      {/* Auto-scroll indicator */}
+      {/* Scroll-to-bottom nudge */}
       {!shouldAutoScroll.current && logs.length > 0 && (
-        <div className="mt-2 text-center">
+        <div className="mt-1 text-center">
           <button
             onClick={() => {
               shouldAutoScroll.current = true
-              if (terminalRef.current) {
-                terminalRef.current.scrollTop = terminalRef.current.scrollHeight
-              }
+              listRef.current?.scrollToItem(logs.length - 1, 'end')
             }}
-            className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+            className="text-xs text-blue-400 hover:text-blue-300 font-medium"
           >
-            ↓ Scroll to bottom
+            ↓ Jump to latest
           </button>
         </div>
       )}
@@ -147,5 +146,3 @@ function LiveTerminal({ logs }) {
 }
 
 export default LiveTerminal
-
-// Made with Bob

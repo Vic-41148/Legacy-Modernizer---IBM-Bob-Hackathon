@@ -191,6 +191,7 @@ function FileUpload({ onFilesSelected, onTryDemo, disabled, loading }) {
             See a real Java 8 → Java 17 migration in action with Spring PetClinic sample project
           </div>
         </div>
+        </div>
       )}
     </div>
   )
