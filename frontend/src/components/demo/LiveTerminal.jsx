@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Terminal, Download } from 'lucide-react'
-import { FixedSizeList as List } from 'react-window'
+import { List } from 'react-window'
 
 function LiveTerminal({ logs }) {
   const listRef = useRef(null)
