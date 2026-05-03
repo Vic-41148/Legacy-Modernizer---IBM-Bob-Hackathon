@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import Editor from '@monaco-editor/react'
-import { createTwoFilesPatch } from 'diff'
+import * as DiffPackage from 'diff'
+const createTwoFilesPatch = DiffPackage.createTwoFilesPatch || DiffPackage.default?.createTwoFilesPatch || DiffPackage.Diff?.createTwoFilesPatch;
 import { FileCode, GitCompare, Info, Loader2, Copy, Check } from 'lucide-react'
 
 function DiffViewer({ file, files }) {
@@ -248,14 +249,21 @@ function DiffViewer({ file, files }) {
                 <Editor
                   height="100%"
                   language="diff"
-                  value={useMemo(() => createTwoFilesPatch(
-                    file.path,
-                    file.path,
-                    diff.original,
-                    diff.modified,
-                    'Legacy (Java 8)',
-                    'Modernized (Java 17)'
-                  ), [diff.original, diff.modified, file.path])}
+                  value={useMemo(() => {
+                    try {
+                      if (!createTwoFilesPatch) return '// Diff engine not loaded';
+                      return createTwoFilesPatch(
+                        file.path || 'unknown',
+                        file.path || 'unknown',
+                        diff.original || '',
+                        diff.modified || '',
+                        'Legacy (Java 8)',
+                        'Modernized (Java 17)'
+                      )
+                    } catch (e) {
+                      return '// Error generating diff: ' + e.message;
+                    }
+                  }, [diff.original, diff.modified, file.path])}
                   theme="vs-light"
                   options={{
                     readOnly: true,
