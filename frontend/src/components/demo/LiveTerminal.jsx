@@ -1,24 +1,9 @@
 import { useEffect, useRef } from 'react'
 import { Terminal, Download } from 'lucide-react'
-import { List } from 'react-window'
+import { Virtuoso } from 'react-virtuoso'
 
 function LiveTerminal({ logs }) {
-  const listRef = useRef(null)
-  const shouldAutoScroll = useRef(true)
-  const outerRef = useRef(null)
-
-  useEffect(() => {
-    if (shouldAutoScroll.current && listRef.current && logs.length > 0) {
-      listRef.current.scrollToItem(logs.length - 1, 'end')
-    }
-  }, [logs])
-
-  const handleScroll = ({ scrollOffset, scrollUpdateWasRequested }) => {
-    if (!scrollUpdateWasRequested && outerRef.current) {
-      const { scrollHeight, clientHeight } = outerRef.current
-      shouldAutoScroll.current = scrollOffset + clientHeight >= scrollHeight - 20
-    }
-  }
+  const virtuosoRef = useRef(null)
 
   const getLogIcon = (type) => {
     switch (type) {
@@ -59,26 +44,6 @@ function LiveTerminal({ logs }) {
     URL.revokeObjectURL(url)
   }
 
-  const Row = ({ index, style }) => {
-    const log = logs[index]
-    return (
-      <div
-        style={style}
-        className="terminal-line font-mono text-sm flex items-start gap-2 px-1"
-      >
-        <span className="text-gray-500 flex-shrink-0 text-xs">
-          [{formatTimestamp(log.timestamp)}]
-        </span>
-        <span className={`flex-shrink-0 ${getLogColor(log.type)}`}>
-          {getLogIcon(log.type)}
-        </span>
-        <span className="text-gray-300 flex-1 break-all leading-5">
-          {log.message}
-        </span>
-      </div>
-    )
-  }
-
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
@@ -103,7 +68,7 @@ function LiveTerminal({ logs }) {
       </div>
 
       {/* Virtualized Log Content */}
-      <div className="flex-1 bg-gray-900 rounded-lg overflow-hidden min-h-0">
+      <div className="flex-1 bg-gray-900 rounded-lg overflow-hidden min-h-0 flex flex-col">
         {logs.length === 0 ? (
           <div className="flex items-center justify-center h-full text-gray-500">
             <div className="text-center">
@@ -112,35 +77,30 @@ function LiveTerminal({ logs }) {
             </div>
           </div>
         ) : (
-          <List
-            ref={listRef}
-            outerRef={outerRef}
-            height={240}
-            itemCount={logs.length}
-            itemSize={28}
-            width="100%"
-            onScroll={handleScroll}
-            className="p-2"
-          >
-            {Row}
-          </List>
+          <div className="flex-1 w-full h-full">
+            <Virtuoso
+              ref={virtuosoRef}
+              data={logs}
+              followOutput="smooth"
+              initialTopMostItemIndex={logs.length > 0 ? logs.length - 1 : 0}
+              className="w-full h-full"
+              itemContent={(index, log) => (
+                <div className="terminal-line font-mono text-sm flex items-start gap-2 px-3 py-1">
+                  <span className="text-gray-500 flex-shrink-0 text-xs mt-0.5">
+                    [{formatTimestamp(log.timestamp)}]
+                  </span>
+                  <span className={`flex-shrink-0 mt-0.5 ${getLogColor(log.type)}`}>
+                    {getLogIcon(log.type)}
+                  </span>
+                  <span className="text-gray-300 flex-1 break-words leading-5">
+                    {log.message}
+                  </span>
+                </div>
+              )}
+            />
+          </div>
         )}
       </div>
-
-      {/* Scroll-to-bottom nudge */}
-      {!shouldAutoScroll.current && logs.length > 0 && (
-        <div className="mt-1 text-center">
-          <button
-            onClick={() => {
-              shouldAutoScroll.current = true
-              listRef.current?.scrollToItem(logs.length - 1, 'end')
-            }}
-            className="text-xs text-blue-400 hover:text-blue-300 font-medium"
-          >
-            ↓ Jump to latest
-          </button>
-        </div>
-      )}
     </div>
   )
 }
